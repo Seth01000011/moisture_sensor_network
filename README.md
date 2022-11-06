@@ -15,7 +15,7 @@
 
 1. Enable ability to update program over BLE or WIFI
 
-# Implementation details:
+# Implementation details
 
 ### Sensors and microcontrollers
 
