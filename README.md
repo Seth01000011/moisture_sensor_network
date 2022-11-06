@@ -13,7 +13,7 @@
 
 ### Tertiary goals
 
-1. Enable ability to update program over BLE or WIFI
+1. Enable ability to update program over Bluetooth Low Energy (BLE) or WIFI
 
 # Implementation details
 
@@ -22,10 +22,15 @@
 #### Communication
 
 - Use BLE mesh network to communicate across crawlspace
+  - Docs:
+    https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp-ble-mesh.html
+  - Getting started:
+    https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html#getting-started-with-ble-mesh
 - Unique (easy-to-read) identifier for each device
 - Label the devices physically
 - Use one microcontroller as BLE server for all BLE devices, to gather
-  and send data to LAMP stack computer server over wifi
+  and send data to LAMP (Linux, Apache, MySQL, PHP/Python) stack computer
+  server over wifi
 
 #### Sensor data
 
@@ -42,6 +47,8 @@
 #### Receiving and storing data
 
 - LAMP stack
+- Tailscale for remote access/troubleshooting
+  https://tailscale.com/
 - Script to check over values (OR) REST API to trigger alerts
   - Learn more about REST API in order to utilize it to fullest potential
 
