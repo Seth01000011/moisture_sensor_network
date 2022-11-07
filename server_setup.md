@@ -83,12 +83,12 @@ password is set during mariaDB installation
 # set up sql database
 
 [x] established database
-[ ] set up table to hold sensor data
+[X] set up table to hold sensor data
 [ ] set up code to analyze data in db table
 [ ] code to alert and send message when values exceed parameters
 [ ] create landing page to access and see current values
 
-### left off on randomnerdtutorials esp8266 lamp server step 5
+### left off on randomnerdtutorials esp8266 lamp server step 5 (esp32 code)
 
 https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
 
