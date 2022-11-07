@@ -21,14 +21,11 @@
 
 #### Communication
 
-- Use BLE mesh network to communicate across crawlspace
-  - Docs:
-    https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp-ble-mesh.html
-  - Getting started:
-    https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html#getting-started-with-ble-mesh
+- Will use ESP-NOW to communicate between devices
+  https://www.espressif.com/sites/default/files/documentation/esp-now_user_guide_en.pdf
 - Unique (easy-to-read) identifier for each device
 - Label the devices physically
-- Use one microcontroller as BLE server for all BLE devices, to gather
+- Use one microcontroller as ESP-NOW parent for all ESP-NOW child devices, to gather
   and send data to LAMP (Linux, Apache, MySQL, PHP/Python) stack computer
   server over wifi
 
@@ -39,7 +36,7 @@
 - Use ULP (Ultra-Low-Power) processor to wake device
   - on moisture > xxxx
   - on timer > 6 hours
-  - connect via BLE and send moisture (and temperature)
+  - connect via ESP-NOW and send moisture (and temperature)
 - average out and/or smooth sensor readings
 
 ### Server
@@ -69,3 +66,14 @@
   - Waterproofing holes? Will it work sufficiently?
   - Add cloth to bottom of tupperware to wick moisture to headers
 - Test typical power consumption of final program and estimate time to dead battery
+- Utilize 18650 batteries with ~3,000 mAh rating
+
+# Removed from project
+
+- Use BLE mesh network to communicate across crawlspace
+- Docs:
+  https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp-ble-mesh.html
+- Getting started:
+  https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html#getting-started-with-ble-mesh
+
+- BLE Mesh is... advanced.
