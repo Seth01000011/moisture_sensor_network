@@ -1,39 +1,39 @@
 /**
-   ESPNOW - Basic communication - Master
+   ESPNOW - Basic communication - master
    Date: 26th September 2017
    Author: Arvind Ravulavaru <https://github.com/arvindr21>
-   Purpose: ESPNow Communication between a Master ESP32 and multiple ESP32 Slaves
-   Description: This sketch consists of the code for the Master module.
+   Purpose: ESPNow Communication between a master ESP32 and multiple ESP32 slaves
+   Description: This sketch consists of the code for the master module.
    Resources: (A bit outdated)
    a. https://espressif.com/sites/default/files/documentation/esp-now_user_guide_en.pdf
    b. http://www.esploradores.com/practica-6-conexion-esp-now/
 
-   << This Device Master >>
+   << This Device master >>
 
-   Flow: Master
-   Step 1 : ESPNow Init on Master and set it in STA mode
-   Step 2 : Start scanning for Slave ESP32 (we have added a prefix of `slave` to the SSID of slave for an easy setup)
-   Step 3 : Once found, add Slave as peer
+   Flow: master
+   Step 1 : ESPNow Init on master and set it in STA mode
+   Step 2 : Start scanning for slave ESP32 (we have added a prefix of `slave` to the SSID of slave for an easy setup)
+   Step 3 : Once found, add slave as peer
    Step 4 : Register for send callback
-   Step 5 : Start Transmitting data from Master to Slave(s)
+   Step 5 : Start Transmitting data from master to slave(s)
 
-   Flow: Slave
-   Step 1 : ESPNow Init on Slave
-   Step 2 : Update the SSID of Slave with a prefix of `slave`
-   Step 3 : Set Slave in AP mode
+   Flow: slave
+   Step 1 : ESPNow Init on slave
+   Step 2 : Update the SSID of slave with a prefix of `slave`
+   Step 3 : Set slave in AP mode
    Step 4 : Register for receive callback and wait for data
    Step 5 : Once data arrives, print it in the serial monitor
 
-   Note: Master and Slave have been defined to easily understand the setup.
-         Based on the ESPNOW API, there is no concept of Master and Slave.
+   Note: master and slave have been defined to easily understand the setup.
+         Based on the ESPNOW API, there is no concept of master and slave.
          Any devices can act as master or slave.
 
 
   // Sample Serial log with 1 master & 2 slaves
       Found 12 devices 
-      1: Slave:24:0A:C4:81:CF:A4 [24:0A:C4:81:CF:A5] (-44)
-      3: Slave:30:AE:A4:02:6D:CC [30:AE:A4:02:6D:CD] (-55)
-      2 Slave(s) found, processing..
+      1: slave:24:0A:C4:81:CF:A4 [24:0A:C4:81:CF:A5] (-44)
+      3: slave:30:AE:A4:02:6D:CC [30:AE:A4:02:6D:CD] (-55)
+      2 slave(s) found, processing..
       Processing: 24:A:C4:81:CF:A5 Status: Already Paired
       Processing: 30:AE:A4:2:6D:CD Status: Already Paired
       Sending: 9
@@ -50,9 +50,9 @@
 #include <WiFi.h>
 
 // Global copy of slave
-#define NUMSLAVES 20
-esp_now_peer_info_t slaves[NUMSLAVES] = {};
-int SlaveCnt = 0;
+#define NUMslaveS 20
+esp_now_peer_info_t slaves[NUMslaveS] = {};
+int slaveCnt = 0;
 
 #define CHANNEL 3
 #define PRINTSCANRESULTS 0
@@ -73,11 +73,11 @@ void InitESPNow() {
 }
 
 // Scan for slaves in AP mode
-void ScanForSlave() {
+void ScanForslave() {
   int8_t scanResults = WiFi.scanNetworks();
   //reset slaves
   memset(slaves, 0, sizeof(slaves));
-  SlaveCnt = 0;
+  slaveCnt = 0;
   Serial.println("");
   if (scanResults == 0) {
     Serial.println("No WiFi devices in AP Mode found");
@@ -93,29 +93,29 @@ void ScanForSlave() {
         Serial.print(i + 1); Serial.print(": "); Serial.print(SSID); Serial.print(" ["); Serial.print(BSSIDstr); Serial.print("]"); Serial.print(" ("); Serial.print(RSSI); Serial.print(")"); Serial.println("");
       }
       delay(10);
-      // Check if the current device starts with `Slave`
-      if (SSID.indexOf("Slave") == 0) {
+      // Check if the current device starts with `slave`
+      if (SSID.indexOf("slave") == 0) {
         // SSID of interest
         Serial.print(i + 1); Serial.print(": "); Serial.print(SSID); Serial.print(" ["); Serial.print(BSSIDstr); Serial.print("]"); Serial.print(" ("); Serial.print(RSSI); Serial.print(")"); Serial.println("");
-        // Get BSSID => Mac Address of the Slave
+        // Get BSSID => Mac Address of the slave
         int mac[6];
 
         if ( 6 == sscanf(BSSIDstr.c_str(), "%x:%x:%x:%x:%x:%x",  &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5] ) ) {
           for (int ii = 0; ii < 6; ++ii ) {
-            slaves[SlaveCnt].peer_addr[ii] = (uint8_t) mac[ii];
+            slaves[slaveCnt].peer_addr[ii] = (uint8_t) mac[ii];
           }
         }
-        slaves[SlaveCnt].channel = CHANNEL; // pick a channel
-        slaves[SlaveCnt].encrypt = 0; // no encryption
-        SlaveCnt++;
+        slaves[slaveCnt].channel = CHANNEL; // pick a channel
+        slaves[slaveCnt].encrypt = 0; // no encryption
+        slaveCnt++;
       }
     }
   }
 
-  if (SlaveCnt > 0) {
-    Serial.print(SlaveCnt); Serial.println(" Slave(s) found, processing..");
+  if (slaveCnt > 0) {
+    Serial.print(slaveCnt); Serial.println(" slave(s) found, processing..");
   } else {
-    Serial.println("No Slave Found, trying again.");
+    Serial.println("No slave Found, trying again.");
   }
 
   // clean up ram
@@ -124,9 +124,9 @@ void ScanForSlave() {
 
 // Check if the slave is already paired with the master.
 // If not, pair the slave with master
-void manageSlave() {
-  if (SlaveCnt > 0) {
-    for (int i = 0; i < SlaveCnt; i++) {
+void manageslave() {
+  if (slaveCnt > 0) {
+    for (int i = 0; i < slaveCnt; i++) {
       Serial.print("Processing: ");
       for (int ii = 0; ii < 6; ++ii ) {
         Serial.print((uint8_t) slaves[i].peer_addr[ii], HEX);
@@ -136,10 +136,10 @@ void manageSlave() {
       // check if the peer exists
       bool exists = esp_now_is_peer_exist(slaves[i].peer_addr);
       if (exists) {
-        // Slave already paired.
+        // slave already paired.
         Serial.println("Already Paired");
       } else {
-        // Slave not paired, attempt pair
+        // slave not paired, attempt pair
         esp_err_t addStatus = esp_now_add_peer(&slaves[i]);
         if (addStatus == ESP_OK) {
           // Pair success
@@ -163,7 +163,7 @@ void manageSlave() {
     }
   } else {
     // No slave found to process
-    Serial.println("No Slave found to process");
+    Serial.println("No slave found to process");
   }
 }
 
@@ -172,7 +172,7 @@ uint8_t data = 0;
 // send data
 void sendData() {
   data++;
-  for (int i = 0; i < SlaveCnt; i++) {
+  for (int i = 0; i < slaveCnt; i++) {
     const uint8_t *peer_addr = slaves[i].peer_addr;
     if (i == 0) { // print only for first slave
       Serial.print("Sending: ");
@@ -200,7 +200,7 @@ void sendData() {
   }
 }
 
-// callback when data is sent from Master to Slave
+// callback when data is sent from master to slave
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   char macStr[18];
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -213,8 +213,8 @@ void setup() {
   Serial.begin(115200);
   //Set device in STA mode to begin with
   WiFi.mode(WIFI_STA);
-  Serial.println("ESPNow/Multi-Slave/Master Example");
-  // This is the mac address of the Master in Station Mode
+  Serial.println("ESPNow/Multi-slave/master Example");
+  // This is the mac address of the master in Station Mode
   Serial.print("STA MAC: "); Serial.println(WiFi.macAddress());
   // Init ESPNow with a fallback logic
   InitESPNow();
@@ -225,13 +225,13 @@ void setup() {
 
 void loop() {
   // In the loop we scan for slave
-  ScanForSlave();
-  // If Slave is found, it would be populate in `slave` variable
+  ScanForslave();
+  // If slave is found, it would be populate in `slave` variable
   // We will check if `slave` is defined and then we proceed further
-  if (SlaveCnt > 0) { // check if slave channel is defined
+  if (slaveCnt > 0) { // check if slave channel is defined
     // `slave` is defined
     // Add slave as peer if it has not been added already
-    manageSlave();
+    manageslave();
     // pair success or already paired
     // Send data to device
     sendData();

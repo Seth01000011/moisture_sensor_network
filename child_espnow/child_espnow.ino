@@ -1,31 +1,31 @@
 /**
-   ESPNOW - Basic communication - Slave
+   ESPNOW - Basic communication - slave
    Date: 26th September 2017
    Author: Arvind Ravulavaru <https://github.com/arvindr21>
-   Purpose: ESPNow Communication between a Master ESP32 and multiple ESP32 Slaves
-   Description: This sketch consists of the code for the Slave module.
+   Purpose: ESPNow Communication between a master ESP32 and multiple ESP32 slaves
+   Description: This sketch consists of the code for the slave module.
    Resources: (A bit outdated)
    a. https://espressif.com/sites/default/files/documentation/esp-now_user_guide_en.pdf
    b. http://www.esploradores.com/practica-6-conexion-esp-now/
 
-   << This Device Slave >>
+   << This Device slave >>
 
-   Flow: Master
-   Step 1 : ESPNow Init on Master and set it in STA mode
-   Step 2 : Start scanning for Slave ESP32 (we have added a prefix of `slave` to the SSID of slave for an easy setup)
-   Step 3 : Once found, add Slave as peer
+   Flow: master
+   Step 1 : ESPNow Init on master and set it in STA mode
+   Step 2 : Start scanning for slave ESP32 (we have added a prefix of `slave` to the SSID of slave for an easy setup)
+   Step 3 : Once found, add slave as peer
    Step 4 : Register for send callback
-   Step 5 : Start Transmitting data from Master to Slave(s)
+   Step 5 : Start Transmitting data from master to slave(s)
 
-   Flow: Slave
-   Step 1 : ESPNow Init on Slave
-   Step 2 : Update the SSID of Slave with a prefix of `slave`
-   Step 3 : Set Slave in AP mode
+   Flow: slave
+   Step 1 : ESPNow Init on slave
+   Step 2 : Update the SSID of slave with a prefix of `slave`
+   Step 3 : Set slave in AP mode
    Step 4 : Register for receive callback and wait for data
    Step 5 : Once data arrives, print it in the serial monitor
 
-   Note: Master and Slave have been defined to easily understand the setup.
-         Based on the ESPNOW API, there is no concept of Master and Slave.
+   Note: master and slave have been defined to easily understand the setup.
+         Based on the ESPNOW API, there is no concept of master and slave.
          Any devices can act as master or salve.
 */
 
@@ -51,7 +51,7 @@ void InitESPNow() {
 
 // config AP SSID
 void configDeviceAP() {
-  String Prefix = "Slave:";
+  String Prefix = "slave:";
   String Mac = WiFi.macAddress();
   String SSID = Prefix + Mac;
   String Password = "123456789";
@@ -65,12 +65,12 @@ void configDeviceAP() {
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("ESPNow/Basic/Slave Example");
+  Serial.println("ESPNow/Basic/slave Example");
   //Set device in AP mode to begin with
   WiFi.mode(WIFI_AP);
   // configure device AP mode
   configDeviceAP();
-  // This is the mac address of the Slave in AP Mode
+  // This is the mac address of the slave in AP Mode
   Serial.print("AP MAC: "); Serial.println(WiFi.softAPmacAddress());
   // Init ESPNow with a fallback logic
   InitESPNow();
@@ -79,7 +79,7 @@ void setup() {
   esp_now_register_recv_cb(OnDataRecv);
 }
 
-// callback when data is recv from Master
+// callback when data is recv from master
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   char macStr[18];
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",

@@ -28,6 +28,7 @@
 - Use one microcontroller as ESP-NOW parent for all ESP-NOW child devices, to gather
   and send data to LAMP (Linux, Apache, MySQL, PHP/Python) stack computer
   server over wifi
+  https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
 
 #### Sensor data
 

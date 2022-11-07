@@ -88,25 +88,15 @@ password is set during mariaDB installation
 [ ] code to alert and send message when values exceed parameters
 [ ] create landing page to access and see current values
 
-# add code for server
+### left off on randomnerdtutorials esp8266 lamp server step 5
+
+https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
+
+# add code for sensors
 
 https://www.esp8266.com/viewtopic.php?f=32&t=4840
-used POST example from
+use POST example from
 https://esp8266-shop.com/blog/how-to-http-get-and-post-requests-with-esp8266/
-
-# add links to various php pages
-
-### left off on randomnerdtutorials esp8266 lamp server step 3!
-
-# LEFT OFF HERE
-
-# TODO:
-
-# work on creating proper program to flash to ESP's
-
-need to hook up to wifi
-send sensor data
-disconnect from wifi
 
 # look into using Python script
 
