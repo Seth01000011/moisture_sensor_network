@@ -1,3 +1,19 @@
+# Backstory
+
+A pipe burst in my parent's crawlspace this October. Had my Dad not been in there on a
+whim, to replace the bait in some mouse traps, it would have gone unnoticed until at
+least April of next year.
+
+While the leak was small, it was enough to have caused some
+mold/mildew buildup in the insulation above the leak. It had leaked at least 20 gallons
+at the point it was found, pooling on top of the vapor barrier my brother and I had
+installed the prior spring.
+
+To reduce the chances of this going undetected in the future, I have decided to use
+my skills in programming microcontrollers, setting up local servers, and creating
+scripts/programs to interact with API's and send notifications when something has gone
+awry.
+
 # Moisture Sensor Network
 
 ## Project goals:
