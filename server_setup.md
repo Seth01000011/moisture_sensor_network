@@ -67,6 +67,7 @@ refer to computingforgeeks.com
 - removed test database
 
 login with $ mysql -u root -p
+(if needed to access from terminal)
 
 # test php info page with
 
