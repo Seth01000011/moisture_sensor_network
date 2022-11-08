@@ -1,6 +1,7 @@
 # install tailscale
 
 https://tailscale.com
+[x] completed
 
 # install apache
 
