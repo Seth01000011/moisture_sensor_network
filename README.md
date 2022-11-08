@@ -40,14 +40,16 @@ awry.
 - Will use ESP-NOW to communicate between devices
   https://www.espressif.com/sites/default/files/documentation/esp-now_user_guide_en.pdf
 
-  Note on terminology:
-  It seems the parent/child (master/slave) is backwards in my implementation. The
-  majority of microcontrollers will be sending data to one single one, which interfaces
-  with the local wifi and communicates with the server. The examples provided in
-  the ESP/Arduino library use the parent to send data to the children.
+  Using the examples here:
 
-  I will be using the multitude of parents to send data to one child - Which interfaces
-  with the local server.
+  - for 8266:
+    https://randomnerdtutorials.com/esp-now-many-to-one-esp8266-nodemcu/
+
+  - for 32:
+    https://randomnerdtutorials.com/esp-now-many-to-one-esp32/
+
+  Both programs can intercommunicate with no issue. The imported libraries
+  are different, however.
 
 - Unique (easy-to-read) identifier for each device
 - Label the devices physically

@@ -9,6 +9,7 @@
   to report as an indication of failure.
 - Code seems to work properly using plain headers off of microcontrollers to detect
   moisture.
+- Communication between many ESP(8266/32) to one ESP (32) working right now.
 
 ## Initial setup of server
 
@@ -43,5 +44,5 @@ https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
 
 ## MCUs
 
-- Need to modify code for MCUs. Found what seems like good example to start
-  with
+- Need to modify code for MCUs. Communication works properly, but need to insert
+  code for reading analog input from header pins

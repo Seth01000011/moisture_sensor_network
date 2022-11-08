@@ -13,7 +13,8 @@
 #include <WiFi.h>
 
 // REPLACE WITH THE RECEIVER'S MAC Address
-uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
+#define BOARD_ID 2
 
 // Structure example to send data
 // Must match the receiver structure
@@ -72,7 +73,7 @@ void setup()
 void loop()
 {
   // Set values to send
-  myData.id = 1;
+  myData.id = BOARD_ID;
   myData.x = random(0, 50);
   myData.y = random(0, 50);
 
