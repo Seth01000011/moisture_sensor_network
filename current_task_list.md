@@ -24,7 +24,13 @@
   - Tailscale for remote access
 - ESP GET and POST requests using HTTPClient is reporting access denied(?)
 - test POST request through terminal or other program on computer instead of MCU
-- look into other server technologies, or work on my own HTTP request
+1. Verify POST works from terminal (server issue or MCU issue?)
+2a. If server -
+    - look into other server technologies
+    - replace PHP with Python (Flask)
+    - test again
+2b. If MCU -
+    - build a better HTTP request
 
 
 # TODO
@@ -48,6 +54,7 @@ https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
 
 ## MCUs
 
-- HTTPClient POST request is failing. Continue to investigate
+- HTTPClient POST request is failing. Continue to investigate. See initial set up
+of server troubleshooting steps
 - Need to modify code for MCUs. Communication works properly, but need to insert
   code for reading analog input from header pins
