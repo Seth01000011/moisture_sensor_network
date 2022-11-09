@@ -22,6 +22,10 @@
     - MySQL (mariaDB)
     - PHP
   - Tailscale for remote access
+- ESP GET and POST requests using HTTPClient is reporting access denied(?)
+- test POST request through terminal or other program on computer instead of MCU
+- look into other server technologies, or work on my own HTTP request
+
 
 # TODO
 
@@ -44,5 +48,6 @@ https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
 
 ## MCUs
 
+- HTTPClient POST request is failing. Continue to investigate
 - Need to modify code for MCUs. Communication works properly, but need to insert
   code for reading analog input from header pins
