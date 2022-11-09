@@ -25,10 +25,12 @@
 - ESP GET and POST requests using HTTPClient is reporting access denied(?)
 - test POST request through terminal or other program on computer instead of MCU
 1. Verify POST works from terminal (server issue or MCU issue?)
+
 2a. If server -
     - look into other server technologies
     - replace PHP with Python (Flask)
     - test again
+
 2b. If MCU -
     - build a better HTTP request
 
