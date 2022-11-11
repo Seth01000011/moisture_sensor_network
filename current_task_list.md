@@ -18,26 +18,26 @@
   - LAMP stack
     - Fedora
     - Apache
-    - MySQL (mariaDB)
-    - PHP
+    - Django's built-in SQL database
+    - Python
+      - Django
   - Tailscale for remote access
 
 # TODO
 
 ## Server
 
-### left off on randomnerdtutorials esp8266 lamp server step 5 (esp32 code)
+### Currently working through Django tutorial to get a handle.
 
-https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
+### Then building API with Django to send data
 
-- Still needs code added to analyze or intercept HTTP POST requests
-  https://www.esp8266.com/viewtopic.php?f=32&t=4840
-
-  use POST example from
-  https://esp8266-shop.com/blog/how-to-http-get-and-post-requests-with-esp8266/
+- Need to create Django backend to interact with using sensors
+  Rest API?
 
 - Still needs code to send data when readings abnormal (Python?)
+
 - Need to ensure database is setup properly
+
 - SSD temperature readout seems high. Check whether this is
   an inaccurate reading, or if laptop needs cooling system cleaned
 
