@@ -9,6 +9,7 @@
   to report as an indication of failure.
 - Code seems to work properly using plain headers off of microcontrollers to detect
   moisture.
+- Communication between many ESP(8266/32) to one ESP (32) working right now.
 
 ## Initial setup of server
 
@@ -22,6 +23,18 @@
     - Python
       - Django
   - Tailscale for remote access
+- ESP GET and POST requests using HTTPClient is reporting access denied(?)
+- test POST request through terminal or other program on computer instead of MCU
+1. Verify POST works from terminal (server issue or MCU issue?)
+
+2a. If server -
+    - look into other server technologies
+    - replace PHP with Python (Flask)
+    - test again
+
+2b. If MCU -
+    - build a better HTTP request
+
 
 # TODO
 
@@ -43,5 +56,7 @@
 
 ## MCUs
 
-- Need to modify code for MCUs. Found what seems like good example to start
-  with
+- HTTPClient POST request is failing. Continue to investigate. See initial set up
+of server troubleshooting steps
+- Need to modify code for MCUs. Communication works properly, but need to insert
+  code for reading analog input from header pins

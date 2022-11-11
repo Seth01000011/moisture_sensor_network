@@ -1,0 +1,4 @@
+1. 84:F7:03:F4:E0:94 # receiver
+2. 84:F7:03:F4:E1:2C # Board 2
+3. D8:BF:C0:FD:44:7C # Board 3
+4. 2C:F4:32:75:E9:3A # Board 4

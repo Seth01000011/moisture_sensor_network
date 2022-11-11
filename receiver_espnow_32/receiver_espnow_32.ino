@@ -12,6 +12,8 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+#define BOARD_ID 1
+
 // Structure example to receive data
 // Must match the sender structure
 typedef struct struct_message
@@ -73,12 +75,19 @@ void setup()
 void loop()
 {
   // Acess the variables for each board
-  /*int board1X = boardsStruct[0].x;
+  /*
+  int board1X = boardsStruct[0].x;
+  Serial.println(board1X);
   int board1Y = boardsStruct[0].y;
+  Serial.println(board1Y);
   int board2X = boardsStruct[1].x;
+  Serial.println(board2X);
   int board2Y = boardsStruct[1].y;
+  Serial.println(board2Y);
   int board3X = boardsStruct[2].x;
-  int board3Y = boardsStruct[2].y;*/
-
+  Serial.println(board3X);
+  int board3Y = boardsStruct[2].y;
+  Serial.println(board3Y);
+  */
   delay(10000);
 }
