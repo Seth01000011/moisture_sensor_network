@@ -16,11 +16,13 @@
 (See task list in server_setup.md)
 
 - Server is set up.
+
   - LAMP stack
     - Fedora
     - Apache
-    - MySQL (mariaDB)
-    - PHP
+    - Django's built-in SQL database
+    - Python
+      - Django
   - Tailscale for remote access
   - make sure permissions are set up correctly. Was having permission issues
     (access to /index.html denied .... because search permissions are missing)
@@ -28,22 +30,30 @@
     https://askubuntu.com/questions/451922/apache-access-denied-because-search-permissions-are-missing
     May be more permission changes required from that specific answer
 
+- ESP GET and POST requests using HTTPClient is reporting access denied(?)
+- test POST request through terminal or other program on computer instead of MCU
+
+1. Verify POST works from terminal (server issue or MCU issue?)
+
+2a. If server - - look into other server technologies - replace PHP with Python (Flask) - test again
+
+2b. If MCU - - build a better HTTP request
+
 # TODO
 
 ## Server
 
-### left off on randomnerdtutorials esp8266 lamp server step 5 (esp32 code)
+### Currently working through Django tutorial to get a handle.
 
-https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
+### Then building API with Django to send data
 
-- Still needs code added to analyze or intercept HTTP POST requests
-  https://www.esp8266.com/viewtopic.php?f=32&t=4840
-
-  use POST example from
-  https://esp8266-shop.com/blog/how-to-http-get-and-post-requests-with-esp8266/
+- Need to create Django backend to interact with using sensors
+  Rest API?
 
 - Still needs code to send data when readings abnormal (Python?)
+
 - Need to ensure database is setup properly
+
 - SSD temperature readout seems high. Check whether this is
   an inaccurate reading, or if laptop needs cooling system cleaned
 

@@ -54,9 +54,8 @@ awry.
 - Unique (easy-to-read) identifier for each device
 - Label the devices physically
 - Use one microcontroller as ESP-NOW parent for all ESP-NOW child devices, to gather
-  and send data to LAMP (Linux, Apache, MySQL, PHP/Python) stack computer
+  and send data to LAMP (Linux, Apache, Django's SQLite, Python (Django)) server
   server over wifi
-  https://randomnerdtutorials.com/esp32-esp8266-raspberry-pi-lamp-server/
 
 #### Sensor data
 
@@ -72,10 +71,10 @@ awry.
 
 #### Receiving and storing data
 
-- LAMP stack
+- LASD (Linux, Apache, SQLite, Django) stack
 - Tailscale for remote access/troubleshooting
   https://tailscale.com/
-- Script to check over values (OR) REST API to trigger alerts
+- REST API to trigger alerts
   - Learn more about REST API in order to utilize it to fullest potential
 
 #### Sending data alerts
@@ -106,3 +105,5 @@ awry.
   https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html#getting-started-with-ble-mesh
 
 - BLE Mesh is... advanced.
+
+- LAMP Stack. Swapped to LAS(QLite)P(ython(Django))
