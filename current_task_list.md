@@ -22,6 +22,11 @@
     - MySQL (mariaDB)
     - PHP
   - Tailscale for remote access
+  - make sure permissions are set up correctly. Was having permission issues
+    (access to /index.html denied .... because search permissions are missing)
+    fixed with chcon -R -t httpd_sys_content_t /dir/to/files/
+    https://askubuntu.com/questions/451922/apache-access-denied-because-search-permissions-are-missing
+    May be more permission changes required from that specific answer
 
 # TODO
 
