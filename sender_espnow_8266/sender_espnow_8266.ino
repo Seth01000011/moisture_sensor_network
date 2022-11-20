@@ -16,7 +16,7 @@
 uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
 
 // Set your Board ID (ESP32 Sender #1 = BOARD_ID 1, ESP32 Sender #2 = BOARD_ID 2, etc)
-#define BOARD_ID 4
+#define BOARD_ID 1
 
 // Structure example to send data
 // Must match the receiver structure
@@ -30,7 +30,7 @@ typedef struct struct_message {
 struct_message myData;
 
 unsigned long lastTime = 0;
-unsigned long timerDelay = 10000;
+unsigned long timerDelay = 60000; // 60,000 ms = 60 seconds
 
 // Callback when data is sent
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
