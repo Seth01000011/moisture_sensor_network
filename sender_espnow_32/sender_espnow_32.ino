@@ -15,7 +15,7 @@
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
-#define BOARD_ID 2
+#define BOARD_ID 1
 
 // threshold for touch wakeup
 #define THRESHOLD 40
@@ -23,7 +23,7 @@ RTC_DATA_ATTR int bootCount = 0;
 touch_pad_t touchPin;
 
 // Timer for sleep
-#define TIME_TO_SLEEP 60000 // 60,000 ms -> 60 seconds (1 minute) per sleep cycle
+#define TIME_TO_SLEEP 21600000000 // 21600000000 us -> 6 hours per sleep cycle
 const int LED = 15;
 
 // pin assignments
@@ -78,7 +78,7 @@ void setup()
   
   // turn on timer wakeup
   Serial.println("Enabling sleep timer for " + String(TIME_TO_SLEEP));
-  esp_sleep_enable_timer_wakeup(60000000); // 60 seconds for sleep
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP); // 60 seconds for sleep
   
   //Setup interrupt on Touch Pad 2 (GPIO2)
   touchAttachInterrupt(T2, callback, THRESHOLD);
@@ -170,7 +170,7 @@ void setup()
     return;
   }
 
-
+  Serial.println("Board number is " + String(BOARD_ID));            
   // Set values to send
   myData.id = BOARD_ID;
   myData.x = int(round(tsens_out));

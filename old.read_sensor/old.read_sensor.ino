@@ -1,3 +1,12 @@
+/**************************
+
+THIS CODE WAS A WORKSPACE TO DEVELOP THE CODE FOR READING THE MOISTURE CONTENT
+OF A SUBSTRATE - IT IS NO LONGER IN USED AND IS DEPRECATED
+
+***************************/
+
+
+
 /* notes
 
 with Pin1 ADC-IN and Pin18 3.3V OUT
