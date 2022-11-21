@@ -22,6 +22,7 @@
 #include <Wire.h>
 #include "./data/secrets.h"
 #include <esp_now.h>
+#include "NTP.h"
 
 // Replace with your network credentials
 // const char* ssid     = "Replace with your ssid";
@@ -51,6 +52,7 @@ https://randomnerdtutorials.com/esp-now-many-to-one-esp32/
 typedef struct struct_message
 {
   int id;
+  String datetime; // datetime stamp
   int x; // mcu_temp reading
   int y; // moisture reading
 } struct_message;
@@ -67,12 +69,12 @@ int NUM_BOARDS = 6;
 
 
 // initializing struct_messsages to (parentid), 0, 0 so that there is SOMETHING to print
-struct_message mcu1 {1,0,0};
-struct_message mcu2 {2,0,0};
-struct_message mcu3 {3,0,0};
-struct_message mcu4 {4,0,0};
-struct_message mcu5 {5,0,0};
-struct_message mcu6 {6,0,0};
+struct_message mcu1 {1,"0",0,0};
+struct_message mcu2 {2,"0",0,0};
+struct_message mcu3 {3,"0",0,0};
+struct_message mcu4 {4,"0",0,0};
+struct_message mcu5 {5,"0",0,0};
+struct_message mcu6 {6,"0",0,0};
 
 struct_message boardsStruct[6] {mcu1, mcu2, mcu3, mcu4, mcu5, mcu6}; // array to hold all the message from senders
 
@@ -95,6 +97,11 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
   Oh yeah, add (fast?) blinking LED to this section! That way I know when data 
   is received without watching serial terminal
   ********************/
+  // initialize and get time
+  configTime(
+
+  // not sure about the formatting of the yyyy-mm-ddThh:ss:... thing.. look into this
+  boardsStruct[myData.id-1].datetime = ntp.formattedTime("%Y %d. %m %T");
   boardsStruct[myData.id-1].x = myData.x;
   boardsStruct[myData.id-1].y = myData.y;
   Serial.printf("Board id: %d \n", boardsStruct[myData.id-1]);
@@ -121,6 +128,9 @@ void setup() {
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
   esp_now_register_recv_cb(OnDataRecv);
+
+  ntp.timeZone(-5,0);
+  ntp.begin();
 }
 
 void loop() {
@@ -164,6 +174,10 @@ void loop() {
 
 
   if(WiFi.status()== WL_CONNECTED){
+    // update time from NTP server
+    ntp.update();
+
+
     Serial.println("WiFi is connected");
     WiFiClient client;
     HTTPClient http;
