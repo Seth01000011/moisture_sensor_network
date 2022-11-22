@@ -22,25 +22,27 @@
 #include <Wire.h>
 #include "./data/secrets.h"
 #include <esp_now.h>
-#include "NTP.h"
+#include <ESP32Time.h>
 
 // Replace with your network credentials
 // const char* ssid     = "Replace with your ssid";
 // const char* password = "Replace with your password";
 
-// REPLACE with your Domain name and URL path or IP address with path
-// const char* serverName = "http://192.168.0.3/post-esp-data.php"; http://server.local.com/espServer/api/data/
 const char* serverName = "http://192.168.0.30/espServer/api/data/";
 
-// Keep this API Key value to be compatible with the PHP code provided in the project page. 
-// If you change the apiKeyValue value, the PHP file /post-esp-data.php also needs to have the same key 
-// String apiKeyValue = "";
+// // Time stuffs
+const char* ntpServer = "pool.ntp.org";
 
-// String sensorName = "Arnold";
-// String MCU_ID = "1";
-// int MCU_TEMP = 999;
-// int MOISTURE_READING = 999;
+//ESP32Time rtc;
+ESP32Time rtc(0);  // offset in seconds GMT+1
 
+// LED
+const int LED = 15;
+
+// delay used to allow initial data to be sent from MCUs
+const long STARTUP_DELAY = 300000; // 5 minutes in milliseconds - 
+// delay between main loops to send data every 6 hours to server
+const long SEND_TO_SERVER_INTERVAL = (43200000 - STARTUP_DELAY); // 6 hours - startup delay in milliseconds
 
 /************************
 ESP_NOW stuffs
@@ -52,9 +54,9 @@ https://randomnerdtutorials.com/esp-now-many-to-one-esp32/
 typedef struct struct_message
 {
   int id;
-  String datetime; // datetime stamp
   int x; // mcu_temp reading
   int y; // moisture reading
+  String datetime; // datetime stamp
 } struct_message;
 
 
@@ -63,153 +65,148 @@ struct_message myData;
 
 // initializing messages for each sender
 int NUM_BOARDS = 6;
-// struct_message mcu1 { 1,  111,  111};
-// struct_message mcu2 { 2,  222,  222};
-// struct_message mcu3 { 3,  333,  333};
-
 
 // initializing struct_messsages to (parentid), 0, 0 so that there is SOMETHING to print
-struct_message mcu1 {1,"0",0,0};
-struct_message mcu2 {2,"0",0,0};
-struct_message mcu3 {3,"0",0,0};
-struct_message mcu4 {4,"0",0,0};
-struct_message mcu5 {5,"0",0,0};
-struct_message mcu6 {6,"0",0,0};
+struct_message mcu1 {1,0,0,"0"};
+struct_message mcu2 {2,0,0,"0"};
+struct_message mcu3 {3,0,0,"0"};
+struct_message mcu4 {4,0,0,"0"};
+struct_message mcu5 {5,0,0,"0"};
+struct_message mcu6 {6,0,0,"0"};
 
 struct_message boardsStruct[6] {mcu1, mcu2, mcu3, mcu4, mcu5, mcu6}; // array to hold all the message from senders
 
 // callback func to be used when data is recv'd
 void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) {
+  // digitalWrite(LED, HIGH);
   char macStr[18];
   Serial.print("Packet received from: ");
+  digitalWrite(LED, LOW);
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
            mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+  // digitalWrite(LED, HIGH);
   Serial.println(macStr);
   memcpy(&myData, incomingData, sizeof(myData));
   Serial.printf("Board ID %u: %u bytes\n", myData.id, len);
+  // digitalWrite(LED, LOW);
+
   // Update the structures with the new incoming data
-  /********************
-  Insert code here to add timestamp to data received
-  ALSO update the boardsStruct to contain a datetime stamp
-  Then ALSO update the loop structure/api send thingy to include 
-  this updated datetime stamp!
-
-  Oh yeah, add (fast?) blinking LED to this section! That way I know when data 
-  is received without watching serial terminal
-  ********************/
-  // initialize and get time
-  configTime(
-
-  // not sure about the formatting of the yyyy-mm-ddThh:ss:... thing.. look into this
-  boardsStruct[myData.id-1].datetime = ntp.formattedTime("%Y %d. %m %T");
+  boardsStruct[myData.id-1].id = myData.id;
   boardsStruct[myData.id-1].x = myData.x;
+  // digitalWrite(LED, HIGH);
   boardsStruct[myData.id-1].y = myData.y;
-  Serial.printf("Board id: %d \n", boardsStruct[myData.id-1]);
+  Serial.printf("Board id: %d \n", boardsStruct[myData.id-1].id);
   Serial.printf("Temp is: %d \n", boardsStruct[myData.id-1].x);
+  // digitalWrite(LED, LOW);
   Serial.printf("Moisture reading is: %d \n", boardsStruct[myData.id-1].y);
+  Serial.println("Datetime is " + String(rtc.getTime("%FT%T")));
+  boardsStruct[myData.id-1].datetime = rtc.getTime("%FT%T");
   Serial.println();
-
-
-
 }
 
+// get and print time
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
 
+  pinMode(LED, OUTPUT);    
+  digitalWrite(LED, HIGH);
+
   WiFi.mode(WIFI_STA);  // initialize wifi station mode
+
+  digitalWrite(LED, LOW);
 
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error intializing ESP_NOW");
     return;
   }
 
-  // Once ESPNow is successfully Init, we will register for recv CB to
-  // get recv packer info
-  esp_now_register_recv_cb(OnDataRecv);
+  digitalWrite(LED, HIGH);
 
-  ntp.timeZone(-5,0);
-  ntp.begin();
+  // Once ESPNow is successfully Init, we will register for recv CB to
+  // get recv packet info
+  esp_now_register_recv_cb(OnDataRecv);
+  
+  digitalWrite(LED, LOW);
+  
+  // configure time for ntp grab
+  configTime(-18000, 0, ntpServer);
+
 }
 
 void loop() {
-  // start by collecting data through esp_now from all of the sensors...
-
-  /* 
-    ESP NOW CODE
-  */
   Serial.println("Looping...");
-  // Access the variables for each board
-  // for (int i = 0; i < NUM_BOARDS; i++) {
-  //   int boardNum = boardsStruct[i].id;
-  //   Serial.println(String(boardNum));
-  //   int boardx = boardsStruct[i].x;
-  //   Serial.println(String(boardx));
-  //   int boardy = boardsStruct[i].y;
-  //   Serial.println(String(boardy));
-  // };
-  // commenting out WiFi POST code to test ESP_NOW code
 
-
-  //Check WiFi connection status
+  
+  // Check WiFi connection status
   // Placed the connect loop in the main void loop() so that the wifi connects and disconnects
-  // as needed throughout the day...
-  while(!WiFi.isConnected() ){
-    delay(5000);
-    
+  // as needed throughout the day... 
+  if(!WiFi.isConnected() ){
+    digitalWrite(LED, HIGH);
     Serial.println("Connecting to " + String(ssid) + " with pass " + String(pass));
     WiFi.begin(ssid, pass);
-    Serial.println("Connecting");
-    while(WiFi.status() != WL_CONNECTED) { 
-      delay(5000);
+    Serial.println("Connecting...");
+    while(!WiFi.isConnected()) {
+      digitalWrite(LED, LOW);
+      delay(2000);
+      digitalWrite(LED, HIGH);
+      delay(2000);
       Serial.print(".");
     }
     Serial.println("");
     Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
-
+    digitalWrite(LED, LOW);
+    Serial.println(WiFi.localIP());
   }
+
   Serial.println("Calling WiFi.status()==WL_CONNECTED");
 
 
-  if(WiFi.status()== WL_CONNECTED){
-    // update time from NTP server
-    ntp.update();
-
+  if(WiFi.isConnected()){
 
     Serial.println("WiFi is connected");
+    Serial.println("Syncing rtc to ntp server");
+    while(rtc.getTime("%Y").toInt() < 2000 ) {
+      // // set notification call-back function
+      delay(1000);
+      digitalWrite(LED, HIGH);
+      struct tm timeinfo;
+      if (getLocalTime(&timeinfo)){
+        rtc.setTimeStruct(timeinfo);
+      }
+      delay(1000);
+      digitalWrite(LED, LOW);
+      Serial.println("Waiting for time to get set properly...");    
+      Serial.println("Current datetime is " + rtc.getTimeDate());
+    }
+    digitalWrite(LED, LOW);
+
+    Serial.println(rtc.getTime("%FT%T"));
+    
     WiFiClient client;
     HTTPClient http;
     
-    // Your Domain name with URL path or IP address with path
-    // http.begin(client, serverName);
-    Serial.println("Sending http.begin(client, serverName)");
-    Serial.println("Servername is " + String(serverName));
-
-    
+    delay(STARTUP_DELAY);
 
     for (int j = 0; j < NUM_BOARDS; j++) {
+      if (boardsStruct[j].x == 0) {
+        continue;
+      }
+      digitalWrite(LED, HIGH);
+
+      // Your Domain name with URL path or IP address with path
+      // http.begin(client, serverName);
+      Serial.println("Servername is " + String(serverName));
       http.begin(client, String(serverName));
 
       // Specify content-type header
-      Serial.println("http.addHeader");
       http.addHeader("Content-Type", "application/json");
-      // If you need an HTTP request with a content type: application/json, use the following:
-      //http.addHeader("Content-Type", "application/json");
-      //int httpResponseCode = http.POST("{\"value1\":\"19\",\"value2\":\"67\",\"value3\":\"78\"}");
-      String httpRequestData = String("{\"parent\":\"" + String(boardsStruct[j].id) + "\",\"date_published\":\"1991-01-01T00:12:00-05:00\",\"mcu_temperature\":\"" + String(boardsStruct[j].x)
+      String httpRequestData = String("{\"parent\":\"" + String(boardsStruct[j].id) 
+      + "\",\"date_published\":\"" 
+      + boardsStruct[j].datetime 
+      + "\",\"mcu_temperature\":\"" + String(boardsStruct[j].x)
       + "\",\"moisture_reading\":\"" + String(boardsStruct[j].y) + "\"}");
-      
-      // Serial.printf("Board ID %u: %u bytes\n", myData.id, len);
-      // // Update the structures with the new incoming data
-      // boardsStruct[myData.id-1].x = myData.x;
-      // boardsStruct[myData.id-1].y = myData.y;
-      // Serial.printf("Board id: %d \n", boardsStruct[myData.id-1]);
-      // Serial.printf("Temp is: %d \n", boardsStruct[myData.id-1].x);
-      // Serial.printf("Moisture reading is: %d \n", boardsStruct[myData.id-1].y);
-      // Serial.println();
-
 
       // Send HTTP POST request
       Serial.println("Sending http.POST(httpRequestData)");
@@ -231,14 +228,17 @@ void loop() {
 
       // Free resources
       http.end();
+
+      digitalWrite(LED, LOW);
+      delay(500);
     }
   }    
   else {
     Serial.println("WiFi Disconnected");
   }
-  //Send an HTTP POST request every 30 seconds
+
   WiFi.disconnect();
-  Serial.println("Disconnected wifi!");  
-  delay(60000);  
+  Serial.println("Disconnected wifi!");
+  delay(SEND_TO_SERVER_INTERVAL);
 
 }
