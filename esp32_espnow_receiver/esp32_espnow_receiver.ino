@@ -39,10 +39,15 @@ ESP32Time rtc(0);  // offset in seconds GMT+1
 // LED
 const int LED = 15;
 
-// delay used to allow initial data to be sent from MCUs
-const long STARTUP_DELAY = 300000; // 5 minutes in milliseconds - 
+// delay used to allow initial data to be sent from MCUs  
+// const long STARTUP_DELAY = 300000; // 5 minutes in mi  lliseconds - 
+const int MS_IN_MINUTE = 60000; // ms in one minute     
+const int MS_IN_HOUR = 3600000; // ms in one hour
+const long STARTUP_DELAY = MS_IN_MINUTE * 10; // 2 minutes
+
 // delay between main loops to send data every 6 hours to server
-const long SEND_TO_SERVER_INTERVAL = (43200000 - STARTUP_DELAY); // 6 hours - startup delay in milliseconds
+// const long SEND_TO_SERVER_INTERVAL = (43200000 - STARTUP_DELAY); // 6 hours - startup delay in milliseconds
+const long SEND_TO_SERVER_INTERVAL = ((MS_IN_HOUR*6) - (STARTUP_DELAY)); // 5 min (in ms) minus start delay
 
 /************************
 ESP_NOW stuffs
@@ -232,6 +237,16 @@ void loop() {
       digitalWrite(LED, LOW);
       delay(500);
     }
+    // to implement this, I need to go back to the django code and setup a warning if no message is received for a 
+    // certain amount of time. Since these won't get sent at all... So for now, I'll let it continue to resend
+    // the old values, since I have a warning set for that
+    
+    // struct_message mcu1 {1,0,0,"0"};
+    // struct_message mcu2 {2,0,0,"0"};
+    // struct_message mcu3 {3,0,0,"0"};
+    // struct_message mcu4 {4,0,0,"0"};
+    // struct_message mcu5 {5,0,0,"0"};
+    // struct_message mcu6 {6,0,0,"0"};
   }    
   else {
     Serial.println("WiFi Disconnected");
