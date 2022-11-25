@@ -38,17 +38,27 @@ ESP32Time rtc(0);  // offset in seconds GMT+1
 
 // LED
 const int LED = 15;
+// button
+const int BUTTON = 0;
+
+// CPU Frequency setter...
+const int freq = 80;
 
 // delay used to allow initial data to be sent from MCUs  
 // const long STARTUP_DELAY = 300000; // 5 minutes in mi  lliseconds - 
+const int US_IN_MS = 1000; // # of microseconds in 1 millisecond
 const int MS_IN_MINUTE = 60000; // ms in one minute     
 const int MS_IN_HOUR = 3600000; // ms in one hour
-const long STARTUP_DELAY = MS_IN_MINUTE * 10; // 2 minutes
+const long STARTUP_DELAY = MS_IN_MINUTE * 5; // 5 minutes
+
+// interrupter to send data
+bool DELAY_BOOLEAN = true;
 
 // delay between main loops to send data every 6 hours to server
 // const long SEND_TO_SERVER_INTERVAL = (43200000 - STARTUP_DELAY); // 6 hours - startup delay in milliseconds
-const long SEND_TO_SERVER_INTERVAL = ((MS_IN_HOUR*6) - (STARTUP_DELAY)); // 5 min (in ms) minus start delay
-
+// const long DELAY_LOOP_INTERVAL = 100;
+const long SEND_TO_SERVER_INTERVAL = ((MS_IN_MINUTE*10));// - (STARTUP_DELAY)); // 1 hour (in ms) minus start delay
+// const long SEND_TO_SERVER_INTERVAL = ((MS_IN_MINUTE)*5*(US_IN_MS)); // delay for sleep, 5 minutes
 /************************
 ESP_NOW stuffs
 https://randomnerdtutorials.com/esp-now-many-to-one-esp32/
@@ -79,7 +89,7 @@ struct_message mcu4 {4,0,0,"0"};
 struct_message mcu5 {5,0,0,"0"};
 struct_message mcu6 {6,0,0,"0"};
 
-struct_message boardsStruct[6] {mcu1, mcu2, mcu3, mcu4, mcu5, mcu6}; // array to hold all the message from senders
+RTC_DATA_ATTR struct_message boardsStruct[6] {mcu1, mcu2, mcu3, mcu4, mcu5, mcu6}; // array to hold all the message from senders
 
 // callback func to be used when data is recv'd
 void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) {
@@ -113,8 +123,19 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  delay(5000);
 
+  // lower clock speed to reduce power consumption and heat
+  // lolin s2 mini has 40MHz crystal
+
+  Serial.println("Setting frequency to " + String(freq) + " MHz...");
+  delay(100);
+  setCpuFrequencyMhz(freq);
+  delay(500);
+  Serial.println("Set cpu freq to " + String(getCpuFrequencyMhz()));
+  delay(500);
+
+  pinMode(BUTTON, INPUT_PULLUP);
   pinMode(LED, OUTPUT);    
   digitalWrite(LED, HIGH);
 
@@ -138,9 +159,15 @@ void setup() {
   // configure time for ntp grab
   configTime(-18000, 0, ntpServer);
 
+  // esp_sleep_enable_timer_wakeup(SEND_TO_SERVER_INTERVAL);
+  // esp_sleep_enable_wifi_wakeup();
+  // WiFi.setSleep(false);
+
 }
 
 void loop() {
+  delay(10000);
+  // Serial.println("Waking up!");
   Serial.println("Looping...");
 
   
@@ -191,11 +218,11 @@ void loop() {
     
     WiFiClient client;
     HTTPClient http;
-    
-    delay(STARTUP_DELAY);
+    delay(2000);
 
     for (int j = 0; j < NUM_BOARDS; j++) {
       if (boardsStruct[j].x == 0) {
+        Serial.println("Skipping " + String(j) + " cuz blank");
         continue;
       }
       digitalWrite(LED, HIGH);
@@ -212,6 +239,11 @@ void loop() {
       + boardsStruct[j].datetime 
       + "\",\"mcu_temperature\":\"" + String(boardsStruct[j].x)
       + "\",\"moisture_reading\":\"" + String(boardsStruct[j].y) + "\"}");
+      Serial.println(String("{\"parent\":\"" + String(boardsStruct[j].id) 
+      + "\",\"date_published\":\"" 
+      + boardsStruct[j].datetime 
+      + "\",\"mcu_temperature\":\"" + String(boardsStruct[j].x)
+      + "\",\"moisture_reading\":\"" + String(boardsStruct[j].y) + "\"}"));
 
       // Send HTTP POST request
       Serial.println("Sending http.POST(httpRequestData)");
@@ -234,26 +266,18 @@ void loop() {
       // Free resources
       http.end();
 
+
       digitalWrite(LED, LOW);
       delay(500);
     }
-    // to implement this, I need to go back to the django code and setup a warning if no message is received for a 
-    // certain amount of time. Since these won't get sent at all... So for now, I'll let it continue to resend
-    // the old values, since I have a warning set for that
-    
-    // struct_message mcu1 {1,0,0,"0"};
-    // struct_message mcu2 {2,0,0,"0"};
-    // struct_message mcu3 {3,0,0,"0"};
-    // struct_message mcu4 {4,0,0,"0"};
-    // struct_message mcu5 {5,0,0,"0"};
-    // struct_message mcu6 {6,0,0,"0"};
   }    
   else {
     Serial.println("WiFi Disconnected");
   }
 
+  Serial.println("CPU Freq is " + String(getCpuFrequencyMhz()));
+
   WiFi.disconnect();
   Serial.println("Disconnected wifi!");
   delay(SEND_TO_SERVER_INTERVAL);
-
 }
