@@ -28,7 +28,7 @@
 // const char* ssid     = "Replace with your ssid";
 // const char* password = "Replace with your password";
 
-const char* serverName = "http://192.168.0.30/espServer/api/data/";
+const char* serverName = "http://192.168.0.31/api/data/";
 
 // // Time stuffs
 const char* ntpServer = "pool.ntp.org";

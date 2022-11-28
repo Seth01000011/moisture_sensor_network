@@ -15,7 +15,7 @@
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
-#define BOARD_ID 2
+#define BOARD_ID 6
 
 // threshold for touch wakeup
 #define THRESHOLD 40
@@ -23,7 +23,15 @@ RTC_DATA_ATTR int bootCount = 0;
 touch_pad_t touchPin;
 
 // Timer for sleep
-#define TIME_TO_SLEEP 10800000000 // 10800000000 us -> 3 hours per sleep cycle
+// #define TIME_TO_SLEEP 10800000000 // 10800000000 us -> 3 hours per sleep cycle
+
+const uint64_t US_IN_SEC = 1000000; // number of microseconds in a second
+const uint64_t SEC_IN_MIN = 60; // seconds in a minute
+const uint64_t MIN_IN_HOUR = 60; // minutes per hour
+const uint64_t CONV_HR_TO_US = US_IN_SEC * SEC_IN_MIN * MIN_IN_HOUR;
+
+const uint64_t TIME_TO_SLEEP = US_IN_SEC * SEC_IN_MIN * MIN_IN_HOUR * 6; // microseconds in 6 hours
+
 const int LED = 15;
 
 // pin assignments
