@@ -15,7 +15,7 @@
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
-#define BOARD_ID 6
+#define BOARD_ID 1
 
 // threshold for touch wakeup
 #define THRESHOLD 40
@@ -156,6 +156,7 @@ void setup()
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
 
+  WiFi.channel(6);
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK)
   {
@@ -168,7 +169,10 @@ void setup()
   esp_now_register_send_cb(OnDataSent);
 
   // Register peer
+
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  // memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  // peerInfo.channel = 0;
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
 
@@ -186,9 +190,13 @@ void setup()
   myData.y = int(round(moisture_average));
 
 
+  // check channel that it is broadcasting on
+  Serial.println("Channel is " + String(peerInfo.channel));
+
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
-
+  delay(100);
+  Serial.println(result);
   if (result == ESP_OK)
   {
     Serial.println("Sent with success");

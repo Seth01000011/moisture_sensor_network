@@ -20,15 +20,15 @@
 #endif
 
 #include <Wire.h>
-#include "./data/secrets.h"
+// #include "./data/secrets.h"
 #include <esp_now.h>
 #include <ESP32Time.h>
 
 // Replace with your network credentials
-// const char* ssid     = "Replace with your ssid";
-// const char* password = "Replace with your password";
 
-const char* serverName = "http://192.168.0.31/api/data/";
+const char* serverName = "http://192.168.1.13/api/data/";
+// 192.168.1.13 - reserved ip for server on parents network
+
 
 // // Time stuffs
 const char* ntpServer = "pool.ntp.org";
@@ -140,14 +140,16 @@ void setup() {
   digitalWrite(LED, HIGH);
 
   WiFi.mode(WIFI_STA);  // initialize wifi station mode
+  // WiFi.mode(WIFI_AP_STA);
 
+  delay(100);
   digitalWrite(LED, LOW);
 
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error intializing ESP_NOW");
     return;
   }
-
+  delay(100);
   digitalWrite(LED, HIGH);
 
   // Once ESPNow is successfully Init, we will register for recv CB to
@@ -166,7 +168,7 @@ void setup() {
 }
 
 void loop() {
-  delay(10000);
+  // delay(10000);
   // Serial.println("Waking up!");
   Serial.println("Looping...");
 
@@ -177,7 +179,12 @@ void loop() {
   if(!WiFi.isConnected() ){
     digitalWrite(LED, HIGH);
     Serial.println("Connecting to " + String(ssid) + " with pass " + String(pass));
+    // esp_wifi_init();
     WiFi.begin(ssid, pass);
+    delay(100);
+    Serial.println("Wifi channel is " + String(WiFi.channel()));
+    WiFi.channel();
+    // esp_wifi_set_channel(0);
     Serial.println("Connecting...");
     while(!WiFi.isConnected()) {
       digitalWrite(LED, LOW);
@@ -188,6 +195,9 @@ void loop() {
     }
     Serial.println("");
     Serial.print("Connected to WiFi network with IP Address: ");
+    Serial.println("Mac address is " + String(WiFi.macAddress()));
+    delay(100);
+    Serial.println("Wifi channel is " + String(WiFi.channel()));
     digitalWrite(LED, LOW);
     Serial.println(WiFi.localIP());
   }
@@ -278,6 +288,25 @@ void loop() {
   Serial.println("CPU Freq is " + String(getCpuFrequencyMhz()));
 
   WiFi.disconnect();
+
+    if (esp_now_init() != ESP_OK) {
+    Serial.println("Error intializing ESP_NOW");
+    return;
+  }
+  delay(100);
+  digitalWrite(LED, HIGH);
+  delay(100);
+  digitalWrite(LED, LOW);
+  WiFi.mode(WIFI_AP);
+  WiFi.begin();
+  delay(100);
+  // Once ESPNow is successfully Init, we will register for recv CB to
+  // get recv packet info
+  // WiFi.channel(1); // 20221204 trying this to get the esp now working 
+  // WiFi.channel(1);
+  esp_wifi_set_channel(1);
+  Serial.println("Wifi channel is now " + String(WiFi.channel()));
+  esp_now_register_recv_cb(OnDataRecv);
   Serial.println("Disconnected wifi!");
   delay(SEND_TO_SERVER_INTERVAL);
 }
