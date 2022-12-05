@@ -10,6 +10,10 @@
 
 */
 
+// Rewrite the connection code for connecting to WiFi and transmitting data using native
+// espressif libraries
+// https://github.com/espressif/esp-idf/tree/7869f4e151e3ea2a308b991fbb8e9baa4cec313c/examples/wifi/getting_started/station
+
 #ifdef ESP32
   #include <WiFi.h>
   #include <HTTPClient.h>
@@ -23,6 +27,9 @@
 // #include "./data/secrets.h"
 #include <esp_now.h>
 #include <ESP32Time.h>
+#include <esp_wifi.h>
+#include <esp_netif.h>
+#include "data/secrets.h"
 
 // Replace with your network credentials
 
@@ -89,7 +96,7 @@ struct_message mcu4 {4,0,0,"0"};
 struct_message mcu5 {5,0,0,"0"};
 struct_message mcu6 {6,0,0,"0"};
 
-RTC_DATA_ATTR struct_message boardsStruct[6] {mcu1, mcu2, mcu3, mcu4, mcu5, mcu6}; // array to hold all the message from senders
+struct_message boardsStruct[6] {mcu1, mcu2, mcu3, mcu4, mcu5, mcu6}; // array to hold all the message from senders
 
 // callback func to be used when data is recv'd
 void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) {
@@ -114,77 +121,37 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
   Serial.printf("Temp is: %d \n", boardsStruct[myData.id-1].x);
   // digitalWrite(LED, LOW);
   Serial.printf("Moisture reading is: %d \n", boardsStruct[myData.id-1].y);
+  delay(500);
   Serial.println("Datetime is " + String(rtc.getTime("%FT%T")));
+  delay(500);
   boardsStruct[myData.id-1].datetime = rtc.getTime("%FT%T");
+  delay(500);
   Serial.println();
 }
 
-// get and print time
+void sendDataToServer() {
+  /*
 
-void setup() {
-  Serial.begin(115200);
-  delay(5000);
+  NEED TO REWRITE THIS USING NATIVE ESPRESSIF LIBRARIES FOR PROPER FUNCTION (I think...)
 
-  // lower clock speed to reduce power consumption and heat
-  // lolin s2 mini has 40MHz crystal
 
-  Serial.println("Setting frequency to " + String(freq) + " MHz...");
-  delay(100);
-  setCpuFrequencyMhz(freq);
-  delay(500);
-  Serial.println("Set cpu freq to " + String(getCpuFrequencyMhz()));
-  delay(500);
+  */
 
-  pinMode(BUTTON, INPUT_PULLUP);
-  pinMode(LED, OUTPUT);    
-  digitalWrite(LED, HIGH);
-
-  WiFi.mode(WIFI_STA);  // initialize wifi station mode
-  // WiFi.mode(WIFI_AP_STA);
-
-  delay(100);
-  digitalWrite(LED, LOW);
-
-  if (esp_now_init() != ESP_OK) {
-    Serial.println("Error intializing ESP_NOW");
-    return;
-  }
-  delay(100);
-  digitalWrite(LED, HIGH);
-
-  // Once ESPNow is successfully Init, we will register for recv CB to
-  // get recv packet info
-  esp_now_register_recv_cb(OnDataRecv);
-  
-  digitalWrite(LED, LOW);
-  
-  // configure time for ntp grab
-  configTime(-18000, 0, ntpServer);
-
-  // esp_sleep_enable_timer_wakeup(SEND_TO_SERVER_INTERVAL);
-  // esp_sleep_enable_wifi_wakeup();
-  // WiFi.setSleep(false);
-
-}
-
-void loop() {
-  // delay(10000);
-  // Serial.println("Waking up!");
-  Serial.println("Looping...");
-
-  
   // Check WiFi connection status
   // Placed the connect loop in the main void loop() so that the wifi connects and disconnects
   // as needed throughout the day... 
   if(!WiFi.isConnected() ){
     digitalWrite(LED, HIGH);
+    WiFi.mode(WIFI_STA);
+    
     Serial.println("Connecting to " + String(ssid) + " with pass " + String(pass));
+    
     // esp_wifi_init();
     WiFi.begin(ssid, pass);
     delay(100);
-    Serial.println("Wifi channel is " + String(WiFi.channel()));
-    WiFi.channel();
-    // esp_wifi_set_channel(0);
+    // Serial.println("Wifi channel is " + String(WiFi.channel()));
+    // WiFi.channel();
+    // esp_wifi_set_channel(0);")
     Serial.println("Connecting...");
     while(!WiFi.isConnected()) {
       digitalWrite(LED, LOW);
@@ -197,7 +164,7 @@ void loop() {
     Serial.print("Connected to WiFi network with IP Address: ");
     Serial.println("Mac address is " + String(WiFi.macAddress()));
     delay(100);
-    Serial.println("Wifi channel is " + String(WiFi.channel()));
+    // Serial.println("Wifi channel is " + String(WiFi.channel()));
     digitalWrite(LED, LOW);
     Serial.println(WiFi.localIP());
   }
@@ -284,29 +251,78 @@ void loop() {
   else {
     Serial.println("WiFi Disconnected");
   }
+  WiFi.disconnect(true, true);
 
-  Serial.println("CPU Freq is " + String(getCpuFrequencyMhz()));
+}
 
-  WiFi.disconnect();
+void setup() {
+  Serial.begin(115200);
+  delay(5000);
 
-    if (esp_now_init() != ESP_OK) {
+  // lower clock speed to reduce power consumption and heat
+  // lolin s2 mini has 40MHz crystal
+
+  Serial.println("Setting frequency to " + String(freq) + " MHz...");
+  delay(100);
+  setCpuFrequencyMhz(freq);
+  delay(500);
+  Serial.println("Set cpu freq to " + String(getCpuFrequencyMhz()));
+  delay(500);
+
+  pinMode(BUTTON, INPUT_PULLUP);
+  pinMode(LED, OUTPUT);    
+  digitalWrite(LED, HIGH);
+
+  // WiFi.mode(WIFI_STA);  // initialize wifi station mode
+  // the following pulled from espressif's espnow example at
+  // https://github.com/espressif/esp-idf/blob/7869f4e151e3ea2a308b991fbb8e9baa4cec313c/examples/wifi/espnow/main/espnow_example_main.c
+  ESP_ERROR_CHECK( esp_netif_init());
+  ESP_ERROR_CHECK( esp_event_loop_create_default());
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+  ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+  ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+  ESP_ERROR_CHECK( esp_wifi_start());
+  ESP_ERROR_CHECK( esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE));
+
+  delay(100);
+  digitalWrite(LED, LOW);
+
+  if (esp_now_init() != ESP_OK) {
     Serial.println("Error intializing ESP_NOW");
     return;
   }
   delay(100);
   digitalWrite(LED, HIGH);
-  delay(100);
-  digitalWrite(LED, LOW);
-  WiFi.mode(WIFI_AP);
-  WiFi.begin();
-  delay(100);
+
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packet info
-  // WiFi.channel(1); // 20221204 trying this to get the esp now working 
-  // WiFi.channel(1);
-  esp_wifi_set_channel(1);
-  Serial.println("Wifi channel is now " + String(WiFi.channel()));
   esp_now_register_recv_cb(OnDataRecv);
-  Serial.println("Disconnected wifi!");
+  delay(500);
+  
+  digitalWrite(LED, LOW);
+  
+  // configure time for ntp grab
+  configTime(-18000, 0, ntpServer);
+
+}
+
+
+void loop() {
+  // delay(10000);
+  // Serial.println("Waking up!");
+  Serial.println("Looping...");
+
+  Serial.println("Wifi channel is " + String(WiFi.channel()));
+  Serial.println("CPU Freq is " + String(getCpuFrequencyMhz()));
+
+  delay(100);
+  digitalWrite(LED, HIGH);
+  delay(100);
+  digitalWrite(LED, LOW);
+  delay(100);
+  // Serial.println("Wifi channel is now " + String(WiFi.channel()));
+
+  sendDataToServer();
   delay(SEND_TO_SERVER_INTERVAL);
 }

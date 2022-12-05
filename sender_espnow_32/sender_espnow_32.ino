@@ -9,9 +9,24 @@
   copies or substantial portions of the Software.
 *********/
 
+/*
+
+THIS IS WORKING AS OF RIGHT NOW
+20221204 
+Using native espressif libraries on receiving end to ensure channel 1 is selected
+for receiver
+
+*/
+
 #include <esp_now.h>
 #include <WiFi.h>
 #include "temp_sensor_driver.h"
+#include <esp_wifi.h>
+
+#define HIGHEST_CHANNEL 12
+#define LOWEST_CHANNEL 1
+
+int wifi_channel = 1;
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
@@ -19,7 +34,6 @@ uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
 
 // threshold for touch wakeup
 #define THRESHOLD 40
-RTC_DATA_ATTR int bootCount = 0;
 touch_pad_t touchPin;
 
 // Timer for sleep
@@ -59,11 +73,19 @@ struct_message myData;
 // Create peer interface
 esp_now_peer_info_t peerInfo;
 
+void WiFiReset() {
+  WiFi.persistent(false);
+  WiFi.disconnect();
+  WiFi.mode(WIFI_OFF);
+  delay(100);
+}
+
 // callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
   Serial.print("\r\nLast Packet Send Status:\t");
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+  Serial.println("The status of the delivery is " + String(status));
 }
 
 void callback() {
@@ -75,6 +97,8 @@ void setup()
 
   pinMode(LED, OUTPUT);    
   digitalWrite(LED, HIGH);
+
+  WiFiReset();
 
 
   //Configure Touchpad as wakeup source
@@ -152,61 +176,77 @@ void setup()
   pinMode(LED, OUTPUT);    
   digitalWrite(LED, HIGH);
 
+  for (uint8_t primaryChan = LOWEST_CHANNEL; primaryChan <= HIGHEST_CHANNEL; primaryChan++) {
+    
+    // Set device as a Wi-Fi Station
+    WiFi.mode(WIFI_STA);
 
-  // Set device as a Wi-Fi Station
-  WiFi.mode(WIFI_STA);
+    Serial.println("Current channel number " + String(primaryChan));
 
-  WiFi.channel(6);
-  // Init ESP-NOW
-  if (esp_now_init() != ESP_OK)
-  {
-    Serial.println("Error initializing ESP-NOW");
-    return;
+    ESP_ERROR_CHECK(esp_wifi_set_promiscuous(true));
+        wifi_second_chan_t secondChan = WIFI_SECOND_CHAN_NONE;
+    ESP_ERROR_CHECK(esp_wifi_set_channel(primaryChan, secondChan));
+    ESP_ERROR_CHECK(esp_wifi_set_promiscuous(false));
+
+    // WiFi.channel(6);
+    // Init ESP-NOW
+    if (esp_now_init() != ESP_OK)
+    {
+      Serial.println("Error initializing ESP-NOW");
+      continue;
+    }
+    // Once ESPNow is successfully Init, we will register for Send CB to
+    // get the status of Trasnmitted packet
+    esp_now_register_send_cb(OnDataSent);
+
+    // Register peer
+
+    memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+    // memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+    // peerInfo.channel = 0;
+    peerInfo.channel = primaryChan;
+    peerInfo.encrypt = false;
+
+    // Add peer
+    if (esp_now_add_peer(&peerInfo) != ESP_OK)
+    {
+      Serial.println("Failed to add peer");
+      continue;
+    }
+    Serial.println("Added peer!");
+
+    Serial.println("Board number is " + String(BOARD_ID));            
+    // Set values to send
+    myData.id = BOARD_ID;
+    myData.x = int(round(tsens_out));
+    myData.y = int(round(moisture_average));
+
+
+    // check channel that it is broadcasting on
+    Serial.println("Channel is " + String(peerInfo.channel));
+
+    // Send message via ESP-NOW
+    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
+    delay(100);
+    Serial.println(result);
+
+    Serial.println("After sending message, channel is " + String(peerInfo.channel));
+    if (result == ESP_OK)
+    {
+      Serial.println("Sent with success");
+    }
+    else
+    {
+      Serial.println("Error sending the data");
+    }
+
+
+    
   }
 
-  // Once ESPNow is successfully Init, we will register for Send CB to
-  // get the status of Trasnmitted packet
-  esp_now_register_send_cb(OnDataSent);
-
-  // Register peer
-
-  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-  // memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-  // peerInfo.channel = 0;
-  peerInfo.channel = 0;
-  peerInfo.encrypt = false;
-
-  // Add peer
-  if (esp_now_add_peer(&peerInfo) != ESP_OK)
-  {
-    Serial.println("Failed to add peer");
-    return;
-  }
-
-  Serial.println("Board number is " + String(BOARD_ID));            
-  // Set values to send
-  myData.id = BOARD_ID;
-  myData.x = int(round(tsens_out));
-  myData.y = int(round(moisture_average));
 
 
-  // check channel that it is broadcasting on
-  Serial.println("Channel is " + String(peerInfo.channel));
-
-  // Send message via ESP-NOW
-  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
-  delay(100);
-  Serial.println(result);
-  if (result == ESP_OK)
-  {
-    Serial.println("Sent with success");
-  }
-  else
-  {
-    Serial.println("Error sending the data");
-  }
-
-
+  
 
   digitalWrite(LED, LOW);
   delay(100);
