@@ -29,13 +29,31 @@
 #include <ESP32Time.h>
 #include <esp_wifi.h>
 #include <esp_netif.h>
-#include "data/secrets.h"
+#include "./data/secrets.h"
 
 // Replace with your network credentials
 
 const char* serverName = "http://192.168.1.13/api/data/";
 // 192.168.1.13 - reserved ip for server on parents network
 
+
+#if CONFIG_ESP_WIFI_AUTH_OPEN
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_OPEN
+#elif CONFIG_ESP_WIFI_AUTH_WEP
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WEP
+#elif CONFIG_ESP_WIFI_AUTH_WPA_PSK
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA_PSK
+#elif CONFIG_ESP_WIFI_AUTH_WPA2_PSK
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_PSK
+#elif CONFIG_ESP_WIFI_AUTH_WPA_WPA2_PSK
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA_WPA2_PSK
+#elif CONFIG_ESP_WIFI_AUTH_WPA3_PSK
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA3_PSK
+#elif CONFIG_ESP_WIFI_AUTH_WPA2_WPA3_PSK
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_WPA3_PSK
+#elif CONFIG_ESP_WIFI_AUTH_WAPI_PSK
+#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WAPI_PSK
+#endif
 
 // // Time stuffs
 const char* ntpServer = "pool.ntp.org";
@@ -140,34 +158,50 @@ void sendDataToServer() {
   // Check WiFi connection status
   // Placed the connect loop in the main void loop() so that the wifi connects and disconnects
   // as needed throughout the day... 
-  if(!WiFi.isConnected() ){
-    digitalWrite(LED, HIGH);
-    WiFi.mode(WIFI_STA);
-    
-    Serial.println("Connecting to " + String(ssid) + " with pass " + String(pass));
-    
-    // esp_wifi_init();
-    WiFi.begin(ssid, pass);
-    delay(100);
-    // Serial.println("Wifi channel is " + String(WiFi.channel()));
-    // WiFi.channel();
-    // esp_wifi_set_channel(0);")
-    Serial.println("Connecting...");
-    while(!WiFi.isConnected()) {
-      digitalWrite(LED, LOW);
-      delay(2000);
-      digitalWrite(LED, HIGH);
-      delay(2000);
-      Serial.print(".");
-    }
-    Serial.println("");
-    Serial.print("Connected to WiFi network with IP Address: ");
-    Serial.println("Mac address is " + String(WiFi.macAddress()));
-    delay(100);
-    // Serial.println("Wifi channel is " + String(WiFi.channel()));
+  digitalWrite(LED, HIGH);
+
+  // swap below with native esp32 c++ library 
+
+  ESP_ERROR_CHECK( esp_netif_init());
+  ESP_ERROR_CHECK( esp_event_loop_create_default());
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+  ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+  ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+  ESP_ERROR_CHECK( esp_wifi_start());
+
+  // connect to wifi
+  ESP_ERROR_CHECK( esp_wifi_connect());
+
+  uint8_t* currentChannel;
+  esp_wifi_get_channel(currentChannel, &WIFI_SECOND_CHAN_NONE);
+  Serial.println("Wifi channel is " + String(currentChannel));
+  WiFi.mode(WIFI_STA);
+  
+  Serial.println("Connecting to " + String(ssid) + " with pass " + String(pass));
+  
+  // esp_wifi_init();
+  WiFi.begin(ssid, pass);
+  delay(100);
+  // Serial.println("Wifi channel is " + String(WiFi.channel()));
+  // WiFi.channel();
+  // esp_wifi_set_channel(0);")
+  Serial.println("Connecting...");
+  while(WIFI_EVENT_STA_DISCONNECTED) {
     digitalWrite(LED, LOW);
-    Serial.println(WiFi.localIP());
+    delay(2000);
+    digitalWrite(LED, HIGH);
+    delay(2000);
+    Serial.print(".");
   }
+  Serial.println("");
+  Serial.print("Connected to WiFi network with IP Address: ");
+  Serial.println("Mac address is " + String(WiFi.macAddress()));
+  delay(100);
+  // Serial.println("Wifi channel is " + String(WiFi.channel()));
+  digitalWrite(LED, LOW);
+  Serial.println(WiFi.localIP());
+
 
   Serial.println("Calling WiFi.status()==WL_CONNECTED");
 
@@ -252,6 +286,7 @@ void sendDataToServer() {
     Serial.println("WiFi Disconnected");
   }
   WiFi.disconnect(true, true);
+  esp_wifi_stop();
 
 }
 
@@ -278,7 +313,22 @@ void setup() {
   // https://github.com/espressif/esp-idf/blob/7869f4e151e3ea2a308b991fbb8e9baa4cec313c/examples/wifi/espnow/main/espnow_example_main.c
   ESP_ERROR_CHECK( esp_netif_init());
   ESP_ERROR_CHECK( esp_event_loop_create_default());
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  // wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+
+  wifi_config_t wifi_config = {
+          .sta = {
+              .ssid = ssid,
+              .password = pass,
+              /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
+              * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
+              * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
+        * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
+              */
+              .threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD,
+              .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
+          },
+      };
+
   ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
   ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
   ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
@@ -313,7 +363,12 @@ void loop() {
   // Serial.println("Waking up!");
   Serial.println("Looping...");
 
-  Serial.println("Wifi channel is " + String(WiFi.channel()));
+  Serial.println("Setting wifi channel to 1 to accept ESPNOW messages...");
+  ESP_ERROR_CHECK( esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE));
+
+  uint8_t currentChannel;
+  esp_wifi_get_channel(currentChannel, &WIFI_SECOND_CHAN_NONE);
+  Serial.println("Wifi channel is " + String(currentChannel));
   Serial.println("CPU Freq is " + String(getCpuFrequencyMhz()));
 
   delay(100);
