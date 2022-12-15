@@ -36,6 +36,7 @@
 // const char* password = "Replace with your password";
 
 const char* serverName = "http://192.168.0.31/api/data/";
+<<<<<<< HEAD
 
 #if CONFIG_ESP_WIFI_AUTH_OPEN
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_OPEN
@@ -54,6 +55,8 @@ const char* serverName = "http://192.168.0.31/api/data/";
 #elif CONFIG_ESP_WIFI_AUTH_WAPI_PSK
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WAPI_PSK
 #endif
+=======
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
 
 // // Time stuffs
 const char* ntpServer = "pool.ntp.org";
@@ -243,6 +246,9 @@ void loop() {
     }
     Serial.println("");
     Serial.print("Connected to WiFi network with IP Address: ");
+<<<<<<< HEAD
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
+=======
 >>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
     digitalWrite(LED, LOW);
     delay(2000);
@@ -347,6 +353,7 @@ void loop() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void setup() {
   Serial.begin(115200);
   delay(5000);
@@ -437,6 +444,8 @@ void loop() {
 
   sendDataToServer();
 =======
+=======
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
   WiFi.disconnect();
   Serial.println("Disconnected wifi!");
 >>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)

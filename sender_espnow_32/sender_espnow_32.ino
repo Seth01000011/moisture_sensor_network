@@ -184,11 +184,14 @@ void setup()
     Serial.println("Current channel number " + String(primaryChan));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     ESP_ERROR_CHECK(esp_wifi_set_promiscuous(true));
         wifi_second_chan_t secondChan = WIFI_SECOND_CHAN_NONE;
     ESP_ERROR_CHECK(esp_wifi_set_channel(primaryChan, secondChan));
     ESP_ERROR_CHECK(esp_wifi_set_promiscuous(false));
 =======
+=======
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK)
   {
@@ -239,6 +242,7 @@ void setup()
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // check channel that it is broadcasting on
     Serial.println("Channel is " + String(peerInfo.channel));
 
@@ -260,6 +264,8 @@ void setup()
 
     
 =======
+=======
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
 
