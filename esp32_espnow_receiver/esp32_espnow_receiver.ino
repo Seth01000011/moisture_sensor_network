@@ -35,6 +35,7 @@
 // const char* ssid     = "Replace with your ssid";
 // const char* password = "Replace with your password";
 
+<<<<<<< HEAD
 const char* serverName = "http://192.168.0.31/api/data/";
 <<<<<<< HEAD
 
@@ -57,6 +58,9 @@ const char* serverName = "http://192.168.0.31/api/data/";
 #endif
 =======
 >>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
+=======
+const char* serverName = "http://192.168.0.30/espServer/api/data/";
+>>>>>>> parent of 98a7b12 (Updated sketches)
 
 // // Time stuffs
 const char* ntpServer = "pool.ntp.org";
