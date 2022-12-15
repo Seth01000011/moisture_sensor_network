@@ -314,19 +314,21 @@ void setup() {
   ESP_ERROR_CHECK( esp_netif_init());
   ESP_ERROR_CHECK( esp_event_loop_create_default());
   // wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-
+  uint8_t ssid[32] = "";
+  uint8_t pass[64] = "";
   wifi_config_t wifi_config;
-  wifi_config.sta.ssid = "";
-  wifi_config.sta.password = "";
+  wifi_config.sta.ssid = uint8_t ""[32];
+  wifi_config.sta.password = uint8_t ""[64];
           /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
           * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
           * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
     * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
           */
   wifi_config.sta.threshold.authmode = WIFI_AUTH_WEP;
-  wifi_config.sta.sae_pwe_h2e = WPA3_SAE_PWE_BOTH;
+  // wifi_config.sta.sae_pwe_h2e = WPA3_SAE_PWE_BOTH;
   
 
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
   ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
   ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
@@ -364,9 +366,9 @@ void loop() {
   Serial.println("Setting wifi channel to 1 to accept ESPNOW messages...");
   ESP_ERROR_CHECK( esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE));
 
-  uint8_t currentChannel;
-  esp_wifi_get_channel(currentChannel, &WIFI_SECOND_CHAN_NONE);
-  Serial.println("Wifi channel is " + String(currentChannel));
+  // uint8_t currentChannel;
+  // esp_wifi_get_channel(currentChannel, &WIFI_SECOND_CHAN_NONE);
+  // Serial.println("Wifi channel is " + String(currentChannel));
   Serial.println("CPU Freq is " + String(getCpuFrequencyMhz()));
 
   delay(100);
