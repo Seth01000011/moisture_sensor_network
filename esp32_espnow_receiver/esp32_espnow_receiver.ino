@@ -173,9 +173,9 @@ void sendDataToServer() {
   // connect to wifi
   ESP_ERROR_CHECK( esp_wifi_connect());
 
-  uint8_t* currentChannel;
-  esp_wifi_get_channel(currentChannel, &WIFI_SECOND_CHAN_NONE);
-  Serial.println("Wifi channel is " + String(currentChannel));
+  // uint8_t* currentChannel;
+  // esp_wifi_get_channel(currentChannel, );
+  // Serial.println("Wifi channel is " + String(currentChannel));
   WiFi.mode(WIFI_STA);
   
   Serial.println("Connecting to " + String(ssid) + " with pass " + String(pass));
@@ -315,19 +315,17 @@ void setup() {
   ESP_ERROR_CHECK( esp_event_loop_create_default());
   // wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
-  wifi_config_t wifi_config = {
-          .sta = {
-              .ssid = ssid,
-              .password = pass,
-              /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
-              * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
-              * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
-        * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
-              */
-              .threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD,
-              .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
-          },
-      };
+  wifi_config_t wifi_config;
+  wifi_config.sta.ssid = "";
+  wifi_config.sta.password = "";
+          /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
+          * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
+          * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
+    * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
+          */
+  wifi_config.sta.threshold.authmode = WIFI_AUTH_WEP;
+  wifi_config.sta.sae_pwe_h2e = WPA3_SAE_PWE_BOTH;
+  
 
   ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
   ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
