@@ -30,7 +30,7 @@ int wifi_channel = 1;
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
-#define BOARD_ID 1
+#define BOARD_ID 6
 
 // threshold for touch wakeup
 #define THRESHOLD 40
@@ -183,10 +183,19 @@ void setup()
 
     Serial.println("Current channel number " + String(primaryChan));
 
+<<<<<<< HEAD
     ESP_ERROR_CHECK(esp_wifi_set_promiscuous(true));
         wifi_second_chan_t secondChan = WIFI_SECOND_CHAN_NONE;
     ESP_ERROR_CHECK(esp_wifi_set_channel(primaryChan, secondChan));
     ESP_ERROR_CHECK(esp_wifi_set_promiscuous(false));
+=======
+  // Init ESP-NOW
+  if (esp_now_init() != ESP_OK)
+  {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
 
     // WiFi.channel(6);
     // Init ESP-NOW
@@ -199,6 +208,7 @@ void setup()
     // get the status of Trasnmitted packet
     esp_now_register_send_cb(OnDataSent);
 
+<<<<<<< HEAD
     // Register peer
 
     memcpy(peerInfo.peer_addr, broadcastAddress, 6);
@@ -206,6 +216,12 @@ void setup()
     // peerInfo.channel = 0;
     peerInfo.channel = primaryChan;
     peerInfo.encrypt = false;
+=======
+  // Register peer
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
 
     // Add peer
     if (esp_now_add_peer(&peerInfo) != ESP_OK)
@@ -222,6 +238,7 @@ void setup()
     myData.y = int(round(moisture_average));
 
 
+<<<<<<< HEAD
     // check channel that it is broadcasting on
     Serial.println("Channel is " + String(peerInfo.channel));
 
@@ -242,6 +259,18 @@ void setup()
 
 
     
+=======
+  // Send message via ESP-NOW
+  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
+
+  if (result == ESP_OK)
+  {
+    Serial.println("Sent with success");
+  }
+  else
+  {
+    Serial.println("Error sending the data");
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
   }
 
 

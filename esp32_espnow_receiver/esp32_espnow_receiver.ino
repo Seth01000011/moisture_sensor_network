@@ -24,7 +24,7 @@
 #endif
 
 #include <Wire.h>
-// #include "./data/secrets.h"
+#include "./data/secrets.h"
 #include <esp_now.h>
 #include <ESP32Time.h>
 #include <esp_wifi.h>
@@ -32,10 +32,10 @@
 #include "./data/secrets.h"
 
 // Replace with your network credentials
+// const char* ssid     = "Replace with your ssid";
+// const char* password = "Replace with your password";
 
-const char* serverName = "http://192.168.1.13/api/data/";
-// 192.168.1.13 - reserved ip for server on parents network
-
+const char* serverName = "http://192.168.0.31/api/data/";
 
 #if CONFIG_ESP_WIFI_AUTH_OPEN
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_OPEN
@@ -155,6 +155,7 @@ void sendDataToServer() {
 
   */
 
+<<<<<<< HEAD
   // Check WiFi connection status
   // Placed the connect loop in the main void loop() so that the wifi connects and disconnects
   // as needed throughout the day... 
@@ -188,6 +189,61 @@ void sendDataToServer() {
   // esp_wifi_set_channel(0);")
   Serial.println("Connecting...");
   while(WIFI_EVENT_STA_DISCONNECTED) {
+=======
+  pinMode(BUTTON, INPUT_PULLUP);
+  pinMode(LED, OUTPUT);    
+  digitalWrite(LED, HIGH);
+
+  WiFi.mode(WIFI_STA);  // initialize wifi station mode
+
+  digitalWrite(LED, LOW);
+
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error intializing ESP_NOW");
+    return;
+  }
+
+  digitalWrite(LED, HIGH);
+
+  // Once ESPNow is successfully Init, we will register for recv CB to
+  // get recv packet info
+  esp_now_register_recv_cb(OnDataRecv);
+  
+  digitalWrite(LED, LOW);
+  
+  // configure time for ntp grab
+  configTime(-18000, 0, ntpServer);
+
+  // esp_sleep_enable_timer_wakeup(SEND_TO_SERVER_INTERVAL);
+  // esp_sleep_enable_wifi_wakeup();
+  // WiFi.setSleep(false);
+
+}
+
+void loop() {
+  delay(10000);
+  // Serial.println("Waking up!");
+  Serial.println("Looping...");
+
+  
+  // Check WiFi connection status
+  // Placed the connect loop in the main void loop() so that the wifi connects and disconnects
+  // as needed throughout the day... 
+  if(!WiFi.isConnected() ){
+    digitalWrite(LED, HIGH);
+    Serial.println("Connecting to " + String(ssid) + " with pass " + String(pass));
+    WiFi.begin(ssid, pass);
+    Serial.println("Connecting...");
+    while(!WiFi.isConnected()) {
+      digitalWrite(LED, LOW);
+      delay(2000);
+      digitalWrite(LED, HIGH);
+      delay(2000);
+      Serial.print(".");
+    }
+    Serial.println("");
+    Serial.print("Connected to WiFi network with IP Address: ");
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
     digitalWrite(LED, LOW);
     delay(2000);
     digitalWrite(LED, HIGH);
@@ -290,6 +346,7 @@ void sendDataToServer() {
 
 }
 
+<<<<<<< HEAD
 void setup() {
   Serial.begin(115200);
   delay(5000);
@@ -379,5 +436,9 @@ void loop() {
   // Serial.println("Wifi channel is now " + String(WiFi.channel()));
 
   sendDataToServer();
+=======
+  WiFi.disconnect();
+  Serial.println("Disconnected wifi!");
+>>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
   delay(SEND_TO_SERVER_INTERVAL);
 }
