@@ -30,7 +30,7 @@ int wifi_channel = 1;
 
 // REPLACE WITH THE RECEIVER'S MAC Address
 uint8_t broadcastAddress[] = {0x84, 0xF7, 0x03, 0xF4, 0xE0, 0x94};
-#define BOARD_ID 2
+#define BOARD_ID 1
 
 // threshold for touch wakeup
 #define THRESHOLD 40
@@ -168,98 +168,44 @@ void setup()
   pinMode(LED, OUTPUT);    
   digitalWrite(LED, HIGH);
 
-  for (uint8_t primaryChan = LOWEST_CHANNEL; primaryChan <= HIGHEST_CHANNEL; primaryChan++) {
-    
-    // Set device as a Wi-Fi Station
-    WiFi.mode(WIFI_STA);
+  // Set device as a Wi-Fi Station
+  WiFi.mode(WIFI_STA);
 
-    Serial.println("Current channel number " + String(primaryChan));
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    ESP_ERROR_CHECK(esp_wifi_set_promiscuous(true));
-        wifi_second_chan_t secondChan = WIFI_SECOND_CHAN_NONE;
-    ESP_ERROR_CHECK(esp_wifi_set_channel(primaryChan, secondChan));
-    ESP_ERROR_CHECK(esp_wifi_set_promiscuous(false));
-=======
-=======
->>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
+  // WiFi.channel(6);
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK)
   {
     Serial.println("Error initializing ESP-NOW");
-    return;
   }
->>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
+  // Once ESPNow is successfully Init, we will register for Send CB to
+  // get the status of Trasnmitted packet
+  esp_now_register_send_cb(OnDataSent);
 
-    // WiFi.channel(6);
-    // Init ESP-NOW
-    if (esp_now_init() != ESP_OK)
-    {
-      Serial.println("Error initializing ESP-NOW");
-      continue;
-    }
-    // Once ESPNow is successfully Init, we will register for Send CB to
-    // get the status of Trasnmitted packet
-    esp_now_register_send_cb(OnDataSent);
-
-<<<<<<< HEAD
-    // Register peer
-
-    memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-    // memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-    // peerInfo.channel = 0;
-    peerInfo.channel = primaryChan;
-    peerInfo.encrypt = false;
-=======
   // Register peer
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
->>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
+  // Add peer
+  if (esp_now_add_peer(&peerInfo) != ESP_OK)
+  {
+    Serial.println("Failed to add peer");
+  }
+  Serial.println("Added peer!");
 
-    // Add peer
-    if (esp_now_add_peer(&peerInfo) != ESP_OK)
-    {
-      Serial.println("Failed to add peer");
-      continue;
-    }
-    Serial.println("Added peer!");
+  Serial.println("Board number is " + String(BOARD_ID));            
+  // Set values to send
+  myData.id = BOARD_ID;
+  myData.x = int(round(tsens_out));
+  myData.y = int(round(moisture_average));
 
-    Serial.println("Board number is " + String(BOARD_ID));            
-    // Set values to send
-    myData.id = BOARD_ID;
-    myData.x = int(round(tsens_out));
-    myData.y = int(round(moisture_average));
+  // check channel that it is broadcasting on
+  Serial.println("Channel is " + String(peerInfo.channel));
 
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-    // check channel that it is broadcasting on
-    Serial.println("Channel is " + String(peerInfo.channel));
-
-    // Send message via ESP-NOW
-    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
-    delay(100);
-    Serial.println(result);
-
-    Serial.println("After sending message, channel is " + String(peerInfo.channel));
-    if (result == ESP_OK)
-    {
-      Serial.println("Sent with success");
-    }
-    else
-    {
-      Serial.println("Error sending the data");
-    }
-
-
-    
-=======
-=======
->>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
+  delay(100);
+  Serial.println(result);
 
   if (result == ESP_OK)
   {
@@ -268,12 +214,7 @@ void setup()
   else
   {
     Serial.println("Error sending the data");
->>>>>>> parent of b340ecd (Narrowing down cause for lack of connectivity)
   }
-
-
-
-  
 
   digitalWrite(LED, LOW);
   delay(100);
@@ -284,7 +225,7 @@ void setup()
   esp_deep_sleep_start();
   Serial.println("This will never be printed");
 
-
+  
 }
 
 void loop(){

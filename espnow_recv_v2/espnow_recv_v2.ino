@@ -27,8 +27,6 @@
 
 
 // Replace with your network credentials
-extern char *ssid = "TC8717T95";
-extern char *pass = "savannah3";
 
 // 192.168.1.13 - reserved ip for server on parents network
 const char* serverName = "http://192.168.1.13/api/data/";
